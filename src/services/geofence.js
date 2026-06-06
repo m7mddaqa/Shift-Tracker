@@ -33,12 +33,17 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   const state = await getGeofenceState();
 
   if (inside && !state.insideGeofence) {
+    // Transition: outside → inside
     await handleGeofenceEnter();
-    await checkAutoStart();
   } else if (!inside && state.insideGeofence) {
+    // Transition: inside → outside
     await handleGeofenceExit();
     await checkAutoEnd();
   }
+
+  // Always check auto-start/end on every update regardless of transition
+  await checkAutoEnd();
+  await checkAutoStart();
 });
 
 export async function requestPermissions() {
@@ -60,8 +65,8 @@ export async function startGeofencing() {
 
   await Location.startLocationUpdatesAsync(LOCATION_TASK, {
     accuracy: Location.Accuracy.Balanced,
-    timeInterval: 60000,       // check every 60 seconds
-    distanceInterval: 30,      // or every 30 metres moved
+    timeInterval: 30000,       // check every 30 seconds
+    distanceInterval: 10,      // or every 10 metres moved
     pausesUpdatesAutomatically: false,
     foregroundService: {
       notificationTitle: 'ShiftTracker',

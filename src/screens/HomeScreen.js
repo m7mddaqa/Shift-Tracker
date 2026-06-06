@@ -40,26 +40,29 @@ export default function HomeScreen({ navigation }) {
     load();
   }, [load]));
 
-  // Poll every 30s to trigger auto-start / auto-end checks
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const ended = await checkAutoEnd();
-      if (ended.ended) {
-        setActiveShift(null);
-        Alert.alert('Shift ended', `Auto-ended at ${new Date(ended.endTime).toLocaleTimeString()}`);
-        return;
-      }
-      const started = await checkAutoStart();
-      if (started) {
-        setActiveShift(started);
-        Alert.alert('Shift auto-started', `Backdated to your arrival at ${new Date(started.startTime).toLocaleTimeString()}`);
-      } else {
-        const shift = await getActiveShift();
-        setActiveShift(shift);
-      }
-    }, 30000);
-    return () => clearInterval(interval);
+  // Check immediately on focus + poll every 15s
+  const runChecks = useCallback(async () => {
+    const ended = await checkAutoEnd();
+    if (ended.ended) {
+      setActiveShift(null);
+      Alert.alert('Shift ended', `Auto-ended at ${new Date(ended.endTime).toLocaleTimeString()}`);
+      return;
+    }
+    const started = await checkAutoStart();
+    if (started) {
+      setActiveShift(started);
+      Alert.alert('Shift auto-started', `Backdated to your arrival at ${new Date(started.startTime).toLocaleTimeString()}`);
+    } else {
+      const shift = await getActiveShift();
+      setActiveShift(shift);
+    }
   }, []);
+
+  useFocusEffect(useCallback(() => {
+    runChecks();
+    const interval = setInterval(runChecks, 15000);
+    return () => clearInterval(interval);
+  }, [runChecks]));
 
   const handleStartShift = async () => {
     if (!workplace) {
