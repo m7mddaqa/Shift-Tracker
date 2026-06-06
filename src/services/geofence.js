@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+import * as Notifications from 'expo-notifications';
 import { handleGeofenceEnter, handleGeofenceExit, checkAutoEnd, checkAutoStart } from './shiftManager';
 import { getWorkplace, getSettings, getGeofenceState } from './storage';
 
@@ -41,6 +42,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 });
 
 export async function requestPermissions() {
+  // Request notification permission (required on Android 13+)
+  await Notifications.requestPermissionsAsync();
+
   const { status: fg } = await Location.requestForegroundPermissionsAsync();
   if (fg !== 'granted') return false;
   const { status: bg } = await Location.requestBackgroundPermissionsAsync();
