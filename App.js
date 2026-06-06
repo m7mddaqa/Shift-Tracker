@@ -1,5 +1,5 @@
-import 'expo-task-manager';
-import './src/services/geofence';
+import 'expo-task-manager'; // must be imported before task registration
+import './src/services/geofence'; // registers LOCATION_TASK at module level
 
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
